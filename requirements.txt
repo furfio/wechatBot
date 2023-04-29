@@ -2,3 +2,4 @@ Flask
 wechatpy
 gunicorn
 cryptography
+openai
