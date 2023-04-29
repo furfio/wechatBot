@@ -61,3 +61,4 @@ jobs:
           app-name: 'wechatBotdizzy'
           slot-name: 'Production'
           publish-profile: ${{ secrets.AZUREAPPSERVICE_PUBLISHPROFILE_FC69150167AE41408241A702C1B286E4 }}
+          startUpCommand: 'gunicorn --bind=0.0.0.0 --workers=4 startup:app'
