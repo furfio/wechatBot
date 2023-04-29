@@ -1,6 +1,14 @@
 # -*- coding: utf-8 -*-
 import os
 
+import openai
+openai.api_type = "azure"
+openai.api_version = "2023-03-15-preview" 
+# openai.api_base = os.getenv("OPENAI_API_BASE")  # Your Azure OpenAI resource's endpoint value.
+openai.api_base = "https://testdizzybot.openai.azure.com/"  # Your Azure OpenAI resource's endpoint value.
+# openai.api_key = os.getenv("OPENAI_API_KEY")
+openai.api_key = "84d92a3043f140228239e0a84206b221"
+
 from flask import Flask, request, abort, render_template
 from wechatpy import parse_message, create_reply
 from wechatpy.utils import check_signature
@@ -16,6 +24,16 @@ APPID = os.getenv("WECHAT_APPID", "wxcea8c9bd48f22718")
 
 app = Flask(__name__)
 
+def askGPT(question):
+    response = openai.ChatCompletion.create(
+        engine="bot002", # The deployment name you chose when you deployed the ChatGPT or GPT-4 model.
+        messages=[
+            {"role": "system", "content": "Assistant is a large language model trained by OpenAI."},
+            {"role": "user", "content": question}
+        ]
+    )
+    return response['choices'][0]['message']['content']
+
 
 @app.route("/")
 def index():
@@ -25,6 +43,10 @@ def index():
 @app.route("/hello")
 def hello():
     return "hello"
+
+@app.route("/helloq")
+def helloq():
+    return askGPT("What is NBA?")
 
 
 @app.route("/wechat", methods=["GET", "POST"])
@@ -47,7 +69,7 @@ def wechat():
         # plaintext mode
         msg = parse_message(request.data)
         if msg.type == "text":
-            reply = create_reply(msg.content, msg)
+            reply = create_reply(askGPT(msg.content), msg)
         else:
             reply = create_reply("Sorry, can not handle this for now", msg)
         return reply.render()
