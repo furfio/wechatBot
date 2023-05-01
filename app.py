@@ -63,9 +63,10 @@ def askGPT(question):
         engine="bot002", # The deployment name you chose when you deployed the ChatGPT or GPT-4 model.
         messages=[
             {"role": "system", "content": "Assistant is a large language model trained by OpenAI."},
-            {"role": "user", "content": "Please answer my following question as simply as you can: " + question}
+            {"role": "user", "content": question}
         ],
-        temperature=0
+        temperature=0,
+        max_tokens=500
         )
         answer = response['choices'][0]['message']['content']
     except:
