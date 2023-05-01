@@ -66,7 +66,7 @@ def askGPT(question):
             {"role": "user", "content": question}
         ],
         temperature=0,
-        max_tokens=500
+        max_tokens=250
         )
         answer = response['choices'][0]['message']['content']
     except:
