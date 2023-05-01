@@ -1,5 +1,7 @@
 # -*- coding: utf-8 -*-
 import os
+import logging
+import datetime
 
 import openai
 openai.api_type = "azure"
@@ -23,6 +25,36 @@ AES_KEY = os.getenv("WECHAT_AES_KEY", "")
 APPID = os.getenv("WECHAT_APPID", "wxcea8c9bd48f22718")
 
 app = Flask(__name__)
+log_dir = os.path.join(app.root_path, 'logs')
+if not os.path.exists(log_dir):
+    os.makedirs(log_dir)
+
+log_file = os.path.join(log_dir, 'app.log')
+
+handler = logging.FileHandler(log_file)
+handler.setLevel(logging.DEBUG)
+
+logger = logging.getLogger(__name__)
+
+logger.addHandler(handler)
+logger.setLevel(logging.DEBUG)
+
+@app.before_request
+def log_request_info():
+    logger.debug('UTC time: %s', datetime.datetime.utcnow())
+    logger.debug('Request message: %s %s', request.method, request.url)
+    logger.debug('Request data: %s', request.get_data())
+
+@app.after_request
+def log_response_info(response):
+    logger.debug('Response message: %s', response.status)
+    logger.debug('Response data: %s', response.get_data())
+    return response
+
+@app.errorhandler(Exception)
+def handle_error(e):
+    logger.error('An error occurred: %s', str(e), exc_info=True)
+    return 'An error occurred.', 500
 
 def askGPT(question):
     response = openai.ChatCompletion.create(
@@ -46,7 +78,7 @@ def hello():
 
 @app.route("/helloq")
 def helloq():
-    return askGPT("What is NBA?")
+    return askGPT("怎么做三明治?")
 
 
 @app.route("/wechat", methods=["GET", "POST"])
@@ -92,4 +124,4 @@ def wechat():
 
 
 if __name__ == "__main__":
-    app.run("127.0.0.1", 5000, debug=True)
+    app.run("127.0.0.1", 5000)
