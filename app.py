@@ -57,14 +57,20 @@ def handle_error(e):
     return 'An error occurred.', 500
 
 def askGPT(question):
-    response = openai.ChatCompletion.create(
+    answer = ""
+    try:
+        response = openai.ChatCompletion.create(
         engine="bot002", # The deployment name you chose when you deployed the ChatGPT or GPT-4 model.
         messages=[
             {"role": "system", "content": "Assistant is a large language model trained by OpenAI."},
-            {"role": "user", "content": question}
-        ]
-    )
-    return response['choices'][0]['message']['content']
+            {"role": "user", "content": "Please answer my following question as simply as you can: " + question}
+        ],
+        temperature=0
+        )
+        answer = response['choices'][0]['message']['content']
+    except:
+        answer = "Model is busy, try again later."
+    return answer
 
 
 @app.route("/")
@@ -78,7 +84,7 @@ def hello():
 
 @app.route("/helloq")
 def helloq():
-    return askGPT("怎么做三明治?")
+    return askGPT("怎么做鱼香肉丝?")
 
 
 @app.route("/wechat", methods=["GET", "POST"])
