@@ -147,8 +147,11 @@ def wechat():
             timestamp_str = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
             # Must have path, not only file name so that ffmpeg can find the file
             home_dir = os.path.expanduser('~')
+            file_path = os.path.join(home_dir, 'wechat_data')
+            if not os.path.exists(file_path):
+                os.makedirs(file_path)
             file_name = f"{timestamp_str}_{unique_id}{file_ext}"
-            file_path = os.path.join(home_dir, 'wechat_data', file_name)
+            file_path = os.path.join(file_path, file_name)
             with open(file_path, 'wb') as f:
                 f.write(voiceFile.content)
             replyText = handle_voice(file_path)
