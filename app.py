@@ -13,6 +13,7 @@ openai.api_key = "84d92a3043f140228239e0a84206b221"
 
 from flask import Flask, request, abort, render_template
 from wechatpy import parse_message, create_reply
+from wechatpy.replies import VoiceReply
 from wechatpy.utils import check_signature
 from wechatpy.exceptions import (
     InvalidSignatureException,
@@ -109,6 +110,8 @@ def wechat():
         msg = parse_message(request.data)
         if msg.type == "text":
             reply = create_reply(askGPT(msg.content), msg)
+        elif msg.type == "voice":
+            reply = VoiceReply(message=msg)
         else:
             reply = create_reply("Sorry, can not handle this for now", msg)
         return reply.render()
