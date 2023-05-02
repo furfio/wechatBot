@@ -54,6 +54,12 @@ jobs:
           name: python-app
           path: .
           
+      - name: Install ffmpeg package
+        run: |
+          apt-get update
+          apt-get installl ffmpeg -y
+          apt-get install libavcodec-extra -y
+          
       - name: 'Deploy to Azure Web App'
         uses: azure/webapps-deploy@v2
         id: deploy-to-webapp
