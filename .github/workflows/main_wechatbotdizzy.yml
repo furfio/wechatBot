@@ -57,7 +57,7 @@ jobs:
       - name: Install ffmpeg package
         run: |
           sudo apt-get update
-          sudo apt-get installl ffmpeg -y
+          sudo apt-get install ffmpeg -y
           sudo apt-get install libavcodec-extra -y
           
       - name: 'Deploy to Azure Web App'
