@@ -2,6 +2,7 @@
 import os
 import logging
 import datetime
+import uuid
 
 import openai
 openai.api_type = "azure"
@@ -81,8 +82,7 @@ def askGPT(question):
         answer = "Model is busy, try again later."
     return answer
 
-def handle_voice(voiceFile):
-    file_path = voiceFile.content
+def handle_voice(file_path):
     wav_path = os.path.splitext(file_path)[0] + ".wav"
     try:
         any_to_wav(file_path, wav_path)
@@ -142,7 +142,11 @@ def wechat():
             # voiceReply = VoiceReply(media_id=msg.media_id)
             # reply = create_reply(voiceReply, msg)
             voiceFile = client.media.download(msg.media_id)
-            replyText = handle_voice(voiceFile)
+            unique_id = uuid.uuid4().hex
+            file_path = datetime.datetime.utcnow() + "_" + unique_id + '.amr'
+            with open(file_path, 'wb') as f:
+                f.write(voiceFile.content)
+            replyText = handle_voice(file_path)
             reply = create_reply(replyText, msg)
         else:
             reply = create_reply("Sorry, can not handle this for now", msg)
