@@ -12,7 +12,7 @@ openai.api_base = "https://testdizzybot.openai.azure.com/"  # Your Azure OpenAI 
 openai.api_key = "84d92a3043f140228239e0a84206b221"
 
 from flask import Flask, request, abort, render_template
-from wechatpy import parse_message, create_reply
+from wechatpy import parse_message, create_reply, WeChatClient
 from wechatpy.replies import VoiceReply
 from wechatpy.utils import check_signature
 from wechatpy.exceptions import (
@@ -24,6 +24,13 @@ from wechatpy.exceptions import (
 TOKEN = os.getenv("WECHAT_TOKEN", "123456")
 AES_KEY = os.getenv("WECHAT_AES_KEY", "")
 APPID = os.getenv("WECHAT_APPID", "wxcea8c9bd48f22718")
+APPMM = os.getenv("APPMM", "da51d7b167cdc1911cdb6d046c6c0394")
+
+# wechet client
+client = WeChatClient(APPID, APPMM)
+
+from utils.audio_convert import any_to_wav
+from utils.azure_voice import voiceToText
 
 app = Flask(__name__)
 log_dir = os.path.join(app.root_path, 'logs')
@@ -74,6 +81,26 @@ def askGPT(question):
         answer = "Model is busy, try again later."
     return answer
 
+def handle_voice(voiceFile):
+    file_path = voiceFile.content
+    wav_path = os.path.splitext(file_path)[0] + ".wav"
+    try:
+        any_to_wav(file_path, wav_path)
+    except Exception as e:  # 转换失败，直接使用mp3，对于某些api，mp3也可以识别
+        logger.warning("[WX]any to wav error, use raw path. " + str(e))
+        wav_path = file_path
+    #  语音识别 
+    replyText = voiceToText(wav_path)
+    # delete temp file
+    try:
+        os.remove(file_path)
+        if wav_path != file_path:
+            os.remove(wav_path)
+    except Exception as e:
+        pass
+        logger.warning("[WX]delete temp file error: " + str(e))
+    return replyText
+
 
 @app.route("/")
 def index():
@@ -111,8 +138,12 @@ def wechat():
         if msg.type == "text":
             reply = create_reply(askGPT(msg.content), msg)
         elif msg.type == "voice":
-            voiceReply = VoiceReply(media_id=msg.media_id)
-            reply = create_reply(voiceReply, msg)
+            # below code is to return the input voice directly
+            # voiceReply = VoiceReply(media_id=msg.media_id)
+            # reply = create_reply(voiceReply, msg)
+            voiceFile = client.media.download(msg.media_id)
+            replyText = handle_voice(voiceFile)
+            reply = create_reply(replyText, msg)
         else:
             reply = create_reply("Sorry, can not handle this for now", msg)
         return reply.render()

@@ -3,3 +3,6 @@ wechatpy
 gunicorn
 cryptography
 openai
+azure.cognitiveservices.speech
+pysilk_mod
+pydub
