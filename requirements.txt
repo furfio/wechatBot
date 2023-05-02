@@ -6,4 +6,4 @@ openai
 azure.cognitiveservices.speech
 pysilk_mod
 pydub
-uuid
+uuid==1.3.0
