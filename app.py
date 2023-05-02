@@ -111,7 +111,8 @@ def wechat():
         if msg.type == "text":
             reply = create_reply(askGPT(msg.content), msg)
         elif msg.type == "voice":
-            reply = VoiceReply(media_id=msg.media_id)
+            voiceReply = VoiceReply(media_id=msg.media_id)
+            reply = create_reply(voiceReply, msg)
         else:
             reply = create_reply("Sorry, can not handle this for now", msg)
         return reply.render()
