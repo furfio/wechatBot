@@ -12,9 +12,7 @@ def voiceToText(voice_file):
     # recognize
     result = speech_recognizer.recognize_once()
     if result.reason == speechsdk.ResultReason.RecognizedSpeech:
-        logger.info("[Azure] voiceToText voice file name={} text={}".format(voice_file, result.text))
         reply = result.text
     else:
         cancel_details = result.cancellation_details
-        logger.error("[Azure] voiceToText error, result={}, errordetails={}".format(result, cancel_details.error_details))
     return reply
