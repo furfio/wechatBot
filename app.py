@@ -143,7 +143,9 @@ def wechat():
             # reply = create_reply(voiceReply, msg)
             voiceFile = client.media.download(msg.media_id)
             unique_id = uuid.uuid4().hex
-            file_path = datetime.datetime.utcnow() + "_" + unique_id + '.amr'
+            file_ext = ".amr"
+            timestamp_str = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            file_path = f"{timestamp_str}_{unique_id}{file_ext}"
             with open(file_path, 'wb') as f:
                 f.write(voiceFile.content)
             replyText = handle_voice(file_path)
