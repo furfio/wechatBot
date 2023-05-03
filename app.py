@@ -30,8 +30,8 @@ APPMM = os.getenv("APPMM", "da51d7b167cdc1911cdb6d046c6c0394")
 # wechet client
 client = WeChatClient(APPID, APPMM)
 
-from utils.audio_convert import any_to_wav
-from utils.azure_voice import voiceToText
+from utils.audio_convert import any_to_wav, any_to_amr
+from utils.azure_voice import voiceToText, textToVoice
 
 app = Flask(__name__)
 log_dir = os.path.join(app.root_path, 'logs')
@@ -82,6 +82,7 @@ def askGPT(question):
         answer = "Model is busy, try again later."
     return answer
 
+# amr -> wav -> text
 def handle_voice(file_path):
     wav_path = os.path.splitext(file_path)[0] + ".wav"
     try:
@@ -101,6 +102,18 @@ def handle_voice(file_path):
         logger.warning("[WX]delete temp file error: " + str(e))
     return replyText
 
+# text -> wav -> amr
+def handle_text(text):
+    wav_path = textToVoice(text)
+    amr_path = os.path.splitext(wav_path)[0] + ".amr"
+    any_to_amr(wav_path, amr_path)
+    # delete temp file
+    try:
+        os.remove(wav_path)
+    except Exception as e:
+        pass
+        logger.warning("[WX]delete temp file error: " + str(e))
+    return amr_path
 
 @app.route("/")
 def index():
@@ -155,7 +168,19 @@ def wechat():
             with open(file_path, 'wb') as f:
                 f.write(voiceFile.content)
             replyText = handle_voice(file_path)
-            reply = create_reply(replyText, msg)
+            # ask gpt
+            gptText = askGPT(replyText)
+            gptFile = handle_text(gptText)
+            # upload amr voice file
+            response = client.media.upload("voice", open(gptFile, "rb"))
+            voiceReply = VoiceReply(media_id=response["media_id"])
+            reply = create_reply(voiceReply, msg)
+            # delete temp file
+            try:
+                os.remove(gptFile)
+            except Exception as e:
+                pass
+                logger.warning("[WX]delete temp file error: " + str(e))
         else:
             reply = create_reply("Sorry, can not handle this for now", msg)
         return reply.render()
