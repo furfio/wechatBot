@@ -157,7 +157,7 @@ def wechat():
             voiceFile = client.media.download(msg.media_id)
             unique_id = uuid.uuid4().hex
             file_ext = ".amr"
-            timestamp_str = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            timestamp_str = datetime.datetime.utcnow().strftime("%Y-%m-%dT%H%M%S.%fZ")
             # Must have path, not only file name so that ffmpeg can find the file
             home_dir = os.path.expanduser('~')
             file_path = os.path.join(home_dir, 'wechat_data')
@@ -200,7 +200,6 @@ def wechat():
             else:
                 reply = create_reply("Sorry, can not handle this for now", msg)
             return crypto.encrypt_message(reply.render(), nonce, timestamp)
-
 
 if __name__ == "__main__":
     app.run("127.0.0.1", 5000)
